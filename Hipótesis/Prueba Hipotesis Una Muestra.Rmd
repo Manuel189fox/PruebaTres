@@ -1,0 +1,185 @@
+---
+title: "Prueba hipótesis"
+author: "Manuel Francisco Romero Ospina"
+date: "2023-03-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+Iniciamos cargando los paquetes y librerías para trabajar prueba hipótesis:
+
+```{r message=FALSE, warning=FALSE}
+#install.packages("BSDA")
+#install.packages("tigerstats")
+library(tigerstats)
+library("BSDA")
+library(readr)
+```
+
+# Prueba Hipótesis para una y dos muestras
+
+## Carga de base de datos
+
+Vamos a trabajar la base denominada StudentsPerformance.csv.
+
+```{r message=FALSE, warning=FALSE}
+df <- read_csv("StudentsPerformance.csv")
+head(df,4)
+```
+
+## Seleción de la Muestra para una población
+
+```{r}
+set.seed(123456)
+df.m<-data.frame(score.marh=sample(df$`math score` ,100,replace = FALSE))
+n=nrow(df.m)
+head(df.m)
+```
+
+Se toma una muestra aleatoria de `r n`; se utiliza la función set.seed() para asegurarnos de que obtengamos los mismos resultados para la aleatorización.
+
+# Análisis estadístico de una muestra
+## Intervalos de confianza
+
+Realizamos un intervalo de confianza del 95% para la variable "math score":
+
+```{r}
+test1=z.test(x=df.m$score.marh,
+                sigma.x = sd(df.m$score.marh),
+                conf.level = 0.95)
+test1$conf.int
+```
+## Prueba Hipótesis
+
+Se indica la prueba hipótesis para la variable "math score":
+
+$$
+\begin{matrix}
+H_{0}:\mu =60\\ 
+H_a:\mu \neq 60
+\end{matrix}
+$$
+
+```{r}
+#alternative:"greater", "less" or "two.sided" 
+#según corresponda la prueba alterna de la hipotesis Ha.
+test1=z.test(x=df.m$score.marh,
+              sigma.x = sd(df.m$score.marh),
+              mu=60,
+              alternative="two.sided",
+              conf.level = 0.95)
+```
+
+##Prueba Hipótesis:resultado
+
+```{r}
+test1
+```
+
+Para un nivel de significancia del 5%, podemos afirmar que el valor del Z estadístico es del `r test1$statistic`, además el p-valor es de `r test1$p.value`.
+
+## Prueba Hipótesis: Conclusión
+
+Podemos concluir que existe evidencia suficiente para Rechaza $H_{0}$, la media de la variable "math score" no es igual a 65.
+
+```{r}
+z1=qnorm(0.025, mean = 0, sd = 1)
+z2=qnorm(0.975, mean = 0, sd = 1)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+pnormGC(c(z1,z2),
+        region="outside",
+        graph=TRUE)
+abline(v =test1$statistic,
+       col="red")
+```
+
+
+# Selección de dos Muestra
+
+Se toman dos muestras aleatorias de las variables: "math score" y "reading score":
+
+```{r}
+set.seed(789)
+#math score
+df.m<-data.frame(score.marh=sample(df$`math score` ,110,replace = FALSE))
+#reading score
+df.r<-data.frame(score.reading=sample(df$`reading score`,140,replace = FALSE))
+```
+
+## Intervalos de confianza para la diferencia de dos medias
+
+Realizamos un intervalo de confianza del 95% para la diferencia de medias de las variables "math score" y "score.reading":
+
+```{r}
+test2=z.test(x=df.m$score.marh,
+             y=df.r$score.reading,
+             sigma.x = sd(df.m$score.marh),
+             sigma.y = sd(df.r$score.reading),
+                conf.level = 0.95)
+test2$conf.int
+```
+El intervalo de confianza nos indica que  existe diferencia entre las medias, pues presentan el mismo signo. 
+
+## Prueba Hipótesis para dos muestras
+
+A continuación se presenta la  prueba hipótesis para la direfencias de medias de: $\mu_{score.marh}$ y $\mu_{score.reading}$
+
+$$
+\begin{matrix}
+H_{0}:\mu_{1}-\mu_{2} =0\\ 
+H_{0}:\mu_{1}-\mu_{2} \neq 0
+\end{matrix}
+$$
+
+```{r}
+
+test2=z.test(x=df.m$score.marh,
+             y=df.r$score.reading,
+             sigma.x = sd(df.m$score.marh),
+             sigma.y = sd(df.r$score.reading),
+             mu=0,
+             alternative="two.sided",
+                conf.level = 0.95)
+```
+Para un nivel de significancia del 5%, podermos afirmar que el valor del Z estadístico es del: `r test2$statistic`, además el p-valor es de: `r test2$p.value`.
+
+## Prueba Hipotesis: Conclusión
+
+Podemos concluir que existe evidencia suficiente para Rechaza $H_{0}$, la diferencia de las medias de las variables  "math score" y score.reading  no es igual a 0.
+
+```{r}
+z1=round(qnorm(0.025, mean = 0, sd = 1),2)
+z2=round(qnorm(0.975, mean = 0, sd = 1),2)
+```
+
+```{r message=FALSE, warning=FALSE}
+pnormGC(c(z1,z2),
+        region="outside",
+        graph=TRUE)
+abline(v =test2$statistic,
+       col="red")
+```
+
+
+# Taller
+### El taller se entrega de manera individual en la plataforma virtual. El archivo entregable es un HTML donde se debe enetregar código, resultados y ecuaciones aplicadas.
+
+1. Seleccione una base de datos que contenga más de dos variables cuantitativa de escala de medición continua.
+2. Seleccione una muestra entre 150 a 200 datos. Cada variable debe tener diferente muestra. 
+3. De las variables realice un análisis descriptivo.
+4. De las variables determine un intervalo del 90% y 95%. De una explicación del resultado.
+5. Seleccione una variable y realice una prueba hipótesis de $H_{a}: \mu \neq \mu _{x}$. De una explicación del resultado.
+6. Seleccione una variable y realice un prueba hipótesis de $H_{a}: \mu <  \mu _{x}$.De una explicación del resultado.
+7. Seleccione una variable y realice un prueba hipótesis de $H_{a}: \mu > \mu _{x}$.De una explicación del resultado.
+8. Selecciones dos variables continuas y realice un intervalo de confianza para la diferencia de medias. De una explicación del resultado.
+9. Realice una prueba hipótesis para la diferencia de medias del 95%. De una explicación del resultado.
+
+### bonus extra
+
+* Aplique un intervalo de confianza para una y dos muestras proporcionales. De una explicación del resultado.
+* Aplique un intervalo de confianza para una muestras proporcional y para la diferencias de proporciones. De una explicación del resultado.
+
+
